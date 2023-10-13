@@ -1,0 +1,1 @@
+INSERT INTO EMPRESA(razao_social,cnpj,senha) VALUES ('razaoSocial_7ca505190d4f','60.701.190/0001-04','$2a$10$0ohoKBqzOD68He2GOZ5z3.pBcAtzYhfVGAV2TNztHkn6HFdlHLLDi');

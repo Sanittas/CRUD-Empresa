@@ -1,0 +1,35 @@
+# Arquivos temporários
+*.class
+*.log
+*.swp
+
+# Arquivos de compilação
+target/
+build/
+
+# Arquivos de dependência
+.mvn/
+# Se você estiver usando Maven Wrapper (mvnw)
+!/.mvn/wrapper/maven-wrapper.jar
+
+# Arquivos de configuração específicos do IDE (Eclipse, IntelliJ, etc.)
+.classpath
+.project
+.settings/
+
+# Logs e arquivos de configuração do Spring Boot
+logs/
+spring-boot-*.log
+
+# Arquivos gerados pelo IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Arquivos de configuração do Visual Studio Code (opcional, se você estiver usando o VS Code)
+.vscode/
+
+# Arquivos de configuração do Eclipse (opcional, se você estiver usando o Eclipse)
+.settings/
+bin/
