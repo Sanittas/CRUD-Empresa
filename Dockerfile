@@ -1,5 +1,4 @@
-FROM openjdk:17
-COPY . /app
+FROM openjdk:17-slim
 WORKDIR /app
-RUN  java -jar target/app-0.0.1-SNAPSHOT.jar
-ENTRYPOINT ["java", "-jar", "target/"]
+COPY app/target/app-0.0.1-SNAPSHOT.jar /app/app-0.0.1-SNAPSHOT.jar
+CMD ["java", "-jar", "app-0.0.1-SNAPSHOT.jar"]
