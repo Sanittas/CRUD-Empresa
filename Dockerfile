@@ -1,4 +1,5 @@
-FROM openjdk:17-slim
-WORKDIR /app
-COPY app/target/app-0.0.1-SNAPSHOT.jar /app/app-0.0.1-SNAPSHOT.jar
-CMD ["java", "-jar", "app-0.0.1-SNAPSHOT.jar"]
+FROM openjdk:17-alpine
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+COPY app/target/app-0.0.1-SNAPSHOT.jar app.jar
+ENTRYPOINT ["java","-jar","/app.jar"]

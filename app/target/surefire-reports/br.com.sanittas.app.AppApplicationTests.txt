@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: br.com.sanittas.app.AppApplicationTests
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 22.912 s - in br.com.sanittas.app.AppApplicationTests
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 77.125 s - in br.com.sanittas.app.AppApplicationTests
