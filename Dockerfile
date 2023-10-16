@@ -1,5 +1,11 @@
-FROM openjdk:17-alpine
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring:spring
-COPY app/target/app-0.0.1-SNAPSHOT.jar app.jar
-ENTRYPOINT ["java","-jar","/app.jar"]
+FROM maven:3.8.5-openjdk-17-slim AS builder
+
+WORKDIR /build
+COPY /app /build
+
+RUN mvn clean package -DskipTests
+
+FROM openjdk:22-ea-18-jdk-slim
+COPY --from=builder /build/target/*.jar /app.jar
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","app.jar", "-Ddebug", "-Xmx128m"]
