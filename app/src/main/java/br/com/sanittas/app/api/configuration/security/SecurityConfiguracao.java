@@ -36,7 +36,7 @@ public class SecurityConfiguracao {
 
     private static final AntPathRequestMatcher[] URLS_PERMITIDAS = {
             new AntPathRequestMatcher("/empresas/swagger-ui/**"),
-            new AntPathRequestMatcher("/v3/api-docs/**"),
+            new AntPathRequestMatcher("/empresas/v3/api-docs/**"),
             new AntPathRequestMatcher("/empresas/swagger-ui.html"),
             new AntPathRequestMatcher("/swagger-resources"),
             new AntPathRequestMatcher("/swagger-resources/**"),
