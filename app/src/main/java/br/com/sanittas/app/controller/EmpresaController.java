@@ -19,6 +19,10 @@ public class EmpresaController {
     @Autowired
     private EmpresaServices services;
 
+    @GetMapping("/myproject")
+    public String getRedirectUrl() {
+        return "redirect:swagger-ui/";
+    }
 
     @PostMapping("/login")
     public ResponseEntity<EmpresaTokenDto> login(@RequestBody EmpresaLoginDto empresaLoginDto) {

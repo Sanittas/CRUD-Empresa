@@ -35,9 +35,9 @@ public class SecurityConfiguracao {
     private AutenticacaoEntryPoint autenticacaoEntryPoint;
 
     private static final AntPathRequestMatcher[] URLS_PERMITIDAS = {
-            new AntPathRequestMatcher("/swagger-ui/**"),
-            new AntPathRequestMatcher("/v3/api-docs/**"),
-            new AntPathRequestMatcher("/swagger-ui.html"),
+            new AntPathRequestMatcher("/empresas/swagger-ui/**"),
+            new AntPathRequestMatcher("/empresas/v3/api-docs/**"),
+            new AntPathRequestMatcher("/empresas/swagger-ui.html"),
             new AntPathRequestMatcher("/swagger-resources"),
             new AntPathRequestMatcher("/swagger-resources/**"),
             new AntPathRequestMatcher("/webjars/**"),
@@ -48,7 +48,8 @@ public class SecurityConfiguracao {
             new AntPathRequestMatcher("/actuator/*"),
             new AntPathRequestMatcher("/api/public/**"),
             new AntPathRequestMatcher("/api/public/authenticate"),
-            new AntPathRequestMatcher("/empresas/login/**")
+            new AntPathRequestMatcher("/empresas/login/**"),
+            new AntPathRequestMatcher("/empresas")
 
     };
 
