@@ -46,7 +46,7 @@
     "requiresCompatibilities": [
         "EC2"
     ],
-    "cpu": "1843",
+    "cpu": "2048",
     "memory": "922",
     "runtimePlatform": {
         "cpuArchitecture": "X86_64",
