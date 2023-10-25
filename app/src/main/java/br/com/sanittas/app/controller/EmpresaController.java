@@ -6,6 +6,8 @@ import br.com.sanittas.app.service.autenticacao.dto.EmpresaTokenDto;
 import br.com.sanittas.app.service.empresa.dto.EmpresaCriacaoDto;
 import br.com.sanittas.app.service.empresa.dto.ListaEmpresa;
 import br.com.sanittas.app.util.ListaObj;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +21,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/empresas")
+@SecurityRequirement(name = "bearer-key")
 public class EmpresaController {
 
     @Autowired
     private EmpresaServices services;
-
-
+    
     @PostMapping("/login")
     public ResponseEntity<EmpresaTokenDto> login(@RequestBody EmpresaLoginDto empresaLoginDto) {
         EmpresaTokenDto empresaTokenDto = services.autenticar(empresaLoginDto);
