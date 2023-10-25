@@ -10,6 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.FormatterClosedException;
 import java.util.List;
 
 @RestController
@@ -73,7 +77,49 @@ public class EmpresaController {
         }
     }
 
+    @GetMapping("/export")
+    public void gravaArquivoCsv() {
+        FileWriter arq = null;
+        PrintWriter saida = null;
+        boolean deuRuim = false;
+        List<ListaEmpresa> lista = services.listarEmpresas();
+        String pastaDownloads = System.getProperty("user.home") + "/Downloads";
+        String nomeArq = pastaDownloads + "/resultado.csv";
 
+        try {
+            arq = new FileWriter(nomeArq);
+            saida = new PrintWriter(arq);
+        } catch (IOException erro) {
+            System.out.println("Erro ao abrir o arquivo");
+            System.exit(1);
+        }
 
+        try {
+            saida.println("ID,Razão Social,CNPJ,Endereços");
+
+            for (ListaEmpresa empresa : lista) {
+                saida.println(
+                        empresa.id() + "," +
+                                empresa.razaoSocial() + "," +
+                                empresa.cnpj() + "," +
+                                empresa.enderecos()
+                );
+            }
+        } catch (FormatterClosedException erro) {
+            System.out.println("Erro ao gravar o arquivo");
+            deuRuim = true;
+        } finally {
+            saida.close();
+            try {
+                arq.close();
+            } catch (IOException erro) {
+                System.out.println("Erro ao fechar o arquivo");
+                deuRuim = true;
+            }
+            if (deuRuim) {
+                System.exit(1);
+            }
+        }
+    }
 
 }
