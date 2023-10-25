@@ -8,6 +8,7 @@ import br.com.sanittas.app.service.empresa.dto.ListaEmpresa;
 import br.com.sanittas.app.util.ListaObj;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -81,9 +82,16 @@ public class EmpresaController {
     }
 
     @GetMapping("/export")
-    public ResponseEntity<?> gravaArquivoCsv() {
+    public ResponseEntity<?> gravaArquivoCsv(HttpServletResponse response) throws IOException {
         try{
-            services.gravaArquivosCsv(services.listarEmpresas());
+            response.setContentType("text/csv");
+
+            response.setHeader("Content-Disposition", "attachment; filename=resultado.csv");
+            String csvContent = services.gravaArquivosCsv(services.listarEmpresas());
+
+            try (PrintWriter writer = response.getWriter()) {
+                writer.write(csvContent);
+            }
             return ResponseEntity.status(200).build();
         } catch (Exception e) {
             return ResponseEntity.status(400).body(e);
@@ -91,12 +99,20 @@ public class EmpresaController {
     }
 
     @PostMapping("/ordenar-razao-social")
-    public ResponseEntity<Void> ordenarPorRazaoSocial() {
+    public ResponseEntity<?> ordenarPorRazaoSocial(HttpServletResponse response) throws IOException {
         try{
-            services.ordenarPorRazaoSocial();
+            response.setContentType("text/csv");
+
+            response.setHeader("Content-Disposition", "attachment; filename=resultado.csv");
+            ListaObj<ListaEmpresa> lista = services.ordenarPorRazaoSocial();
+            String csvContent = services.gravaArquivosCsv(lista);
+
+            try (PrintWriter writer = response.getWriter()) {
+                writer.write(csvContent);
+            }
             return ResponseEntity.status(200).build();
         } catch (Exception e) {
-            return ResponseEntity.status(400).build();
+            return ResponseEntity.status(400).body(e);
         }
     }
 

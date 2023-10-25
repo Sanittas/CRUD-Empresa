@@ -103,57 +103,77 @@ public class EmpresaServices {
         return EmpresaMapper.of(empresaAutenticada, jwtToken);
     }
 
-    public void gravaArquivosCsv(ListaObj<ListaEmpresa> lista) {
-        FileWriter arq = null;
-        Formatter saida = null;
-        boolean deuRuim = false;
-        String pastaDownloads = System.getProperty("user.home") + "/Downloads";
-        String nomeArq = pastaDownloads + "/resultado.csv";
-
-        try {
-            arq = new FileWriter(nomeArq);
-            saida = new Formatter(arq);
-        } catch (IOException erro) {
-            System.out.println("Erro ao abrir o arquivo");
-            throw new RuntimeException(erro);
-        }
-
-        try {
-            saida.format("id;razaoSocial;cnpj;logradouro;numero;complemento;estado;cidade\n");
-            for (int i = 0; i < lista.getNroElem(); i++) {
-                if (lista.getElemento(i).enderecos().isEmpty()) {
-                    saida.format(
-                            lista.getElemento(i).id() + ";" +
-                                    lista.getElemento(i).razaoSocial() + ";" +
-                                    lista.getElemento(i).cnpj() + "\n"
-                    );
-                } else {
-                    saida.format(
-                            lista.getElemento(i).id() + ";" +
-                                    lista.getElemento(i).razaoSocial() + ";" +
-                                    lista.getElemento(i).cnpj() + ";" +
-                                    lista.getElemento(i).enderecos().get(0).logradouro() + ";" +
-                                    lista.getElemento(i).enderecos().get(0).numero() + ";" +
-                                    lista.getElemento(i).enderecos().get(0).complemento() + ";" +
-                                    lista.getElemento(i).enderecos().get(0).estado() + ";" +
-                                    lista.getElemento(i).enderecos().get(0).cidade() + "\n"
-                    );
-                }
+    public String gravaArquivosCsv(ListaObj<ListaEmpresa> lista) {
+//        FileWriter arq = null;
+//        Formatter saida = null;
+//        boolean deuRuim = false;
+//        String pastaDownloads = System.getProperty("user.home") + "/Downloads";
+//        String nomeArq = pastaDownloads + "/resultado.csv";
+//
+//        try {
+//            arq = new FileWriter(nomeArq);
+//            saida = new Formatter(arq);
+//        } catch (IOException erro) {
+//            System.out.println("Erro ao abrir o arquivo");
+//            throw new RuntimeException(erro);
+//        }
+//
+//        try {
+//            saida.format("id;razaoSocial;cnpj;logradouro;numero;complemento;estado;cidade\n");
+//            for (int i = 0; i < lista.getNroElem(); i++) {
+//                if (lista.getElemento(i).enderecos().isEmpty()) {
+//                    saida.format(
+//                            lista.getElemento(i).id() + ";" +
+//                                    lista.getElemento(i).razaoSocial() + ";" +
+//                                    lista.getElemento(i).cnpj() + "\n"
+//                    );
+//                } else {
+//                    saida.format(
+//                            lista.getElemento(i).id() + ";" +
+//                                    lista.getElemento(i).razaoSocial() + ";" +
+//                                    lista.getElemento(i).cnpj() + ";" +
+//                                    lista.getElemento(i).enderecos().get(0).logradouro() + ";" +
+//                                    lista.getElemento(i).enderecos().get(0).numero() + ";" +
+//                                    lista.getElemento(i).enderecos().get(0).complemento() + ";" +
+//                                    lista.getElemento(i).enderecos().get(0).estado() + ";" +
+//                                    lista.getElemento(i).enderecos().get(0).cidade() + "\n"
+//                    );
+//                }
+//            }
+//
+//        } catch (FormatterClosedException erro) {
+//            System.out.println("Erro ao gravar o arquivo");
+//            deuRuim = true;
+//        } finally {
+//            saida.close();
+//            try {
+//                arq.close();
+//            } catch (IOException erro) {
+//                System.out.println("Erro ao fechar o arquivo");
+//                deuRuim = true;
+//            }
+//        }
+        String csv = "id;razaoSocial;cnpj;logradouro;numero;complemento;estado;cidade\n";
+        for (int i = 0; i < lista.getNroElem(); i++) {
+            if (lista.getElemento(i).enderecos().isEmpty()) {
+                csv +=
+                        lista.getElemento(i).id() + ";" +
+                                lista.getElemento(i).razaoSocial() + ";" +
+                                lista.getElemento(i).cnpj() + "\n";
+            } else {
+                csv += lista.getElemento(i).id() + ";" +
+                                lista.getElemento(i).razaoSocial() + ";" +
+                                lista.getElemento(i).cnpj() + ";" +
+                                lista.getElemento(i).enderecos().get(0).logradouro() + ";" +
+                                lista.getElemento(i).enderecos().get(0).numero() + ";" +
+                                lista.getElemento(i).enderecos().get(0).complemento() + ";" +
+                                lista.getElemento(i).enderecos().get(0).estado() + ";" +
+                                lista.getElemento(i).enderecos().get(0).cidade() + "\n";
             }
-
-        } catch (FormatterClosedException erro) {
-            System.out.println("Erro ao gravar o arquivo");
-            deuRuim = true;
-        } finally {
-            saida.close();
-            try {
-                arq.close();
-            } catch (IOException erro) {
-                System.out.println("Erro ao fechar o arquivo");
-                deuRuim = true;
-            }
         }
+        return csv;
     }
+
 
     public ListaObj<ListaEmpresa> ordenarPorRazaoSocial() {
         ListaObj<ListaEmpresa> listaEmpresas = listarEmpresas();
