@@ -5,6 +5,7 @@ import br.com.sanittas.app.service.autenticacao.dto.EmpresaLoginDto;
 import br.com.sanittas.app.service.autenticacao.dto.EmpresaTokenDto;
 import br.com.sanittas.app.service.empresa.dto.EmpresaCriacaoDto;
 import br.com.sanittas.app.service.empresa.dto.ListaEmpresa;
+import br.com.sanittas.app.util.ListaObj;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -31,10 +32,10 @@ public class EmpresaController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<List<ListaEmpresa>> listarEmpresas() {
+    public ResponseEntity<ListaObj<ListaEmpresa>> listarEmpresas() {
         try{
-            List<ListaEmpresa> response = services.listarEmpresas();
-            if (!response.isEmpty()) {
+            ListaObj<ListaEmpresa> response = services.listarEmpresas();
+            if (response.getNroElem() > 0) {
                 return ResponseEntity.status(200).body(response);
             }
             return ResponseEntity.status(204).build();
@@ -78,47 +79,32 @@ public class EmpresaController {
     }
 
     @GetMapping("/export")
-    public void gravaArquivoCsv() {
-        FileWriter arq = null;
-        PrintWriter saida = null;
-        boolean deuRuim = false;
-        List<ListaEmpresa> lista = services.listarEmpresas();
-        String pastaDownloads = System.getProperty("user.home") + "/Downloads";
-        String nomeArq = pastaDownloads + "/resultado.csv";
-
-        try {
-            arq = new FileWriter(nomeArq);
-            saida = new PrintWriter(arq);
-        } catch (IOException erro) {
-            System.out.println("Erro ao abrir o arquivo");
-            System.exit(1);
+    public ResponseEntity<?> gravaArquivoCsv() {
+        try{
+            services.gravaArquivosCsv(services.listarEmpresas());
+            return ResponseEntity.status(200).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(e);
         }
+    }
 
-        try {
-            saida.println("ID,Razão Social,CNPJ,Endereços");
+    @PostMapping("/ordenar-razao-social")
+    public ResponseEntity<Void> ordenarPorRazaoSocial() {
+        try{
+            services.ordenarPorRazaoSocial();
+            return ResponseEntity.status(200).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(400).build();
+        }
+    }
 
-            for (ListaEmpresa empresa : lista) {
-                saida.println(
-                        empresa.id() + "," +
-                                empresa.razaoSocial() + "," +
-                                empresa.cnpj() + "," +
-                                empresa.enderecos()
-                );
-            }
-        } catch (FormatterClosedException erro) {
-            System.out.println("Erro ao gravar o arquivo");
-            deuRuim = true;
-        } finally {
-            saida.close();
-            try {
-                arq.close();
-            } catch (IOException erro) {
-                System.out.println("Erro ao fechar o arquivo");
-                deuRuim = true;
-            }
-            if (deuRuim) {
-                System.exit(1);
-            }
+    @GetMapping("/pesquisa-razao-social/{razaoSocial}")
+    public ResponseEntity<Integer> pesquisaBinariaRazaoSocial(@PathVariable String razaoSocial) {
+        try{
+            Integer response = services.pesquisaBinariaRazaoSocial(razaoSocial);
+            return ResponseEntity.status(200).body(response);
+        }catch (Exception e) {
+            return ResponseEntity.status(400).build();
         }
     }
 

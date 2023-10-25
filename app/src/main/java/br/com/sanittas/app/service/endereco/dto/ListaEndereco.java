@@ -8,4 +8,8 @@ public record ListaEndereco(
         String estado,
         String cidade
 ) {
+    @Override
+    public String toString() {
+        return String.format("%d;%s;%s;%s;%s;%s",id, logradouro, numero, complemento, estado, cidade);
+    }
 }

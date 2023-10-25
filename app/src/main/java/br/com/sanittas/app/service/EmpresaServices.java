@@ -8,6 +8,7 @@ import br.com.sanittas.app.service.autenticacao.dto.EmpresaLoginDto;
 import br.com.sanittas.app.service.autenticacao.dto.EmpresaTokenDto;
 import br.com.sanittas.app.service.empresa.dto.*;
 import br.com.sanittas.app.service.endereco.dto.ListaEndereco;
+import br.com.sanittas.app.util.ListaObj;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,8 +18,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 @Service
 public class EmpresaServices {
@@ -31,9 +32,9 @@ public class EmpresaServices {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    public List<ListaEmpresa> listarEmpresas() {
+    public ListaObj<ListaEmpresa> listarEmpresas() {
         List<Empresa> empresas = repository.findAll();
-        List<ListaEmpresa> listaEmpresas = new ArrayList<>();
+        ListaObj<ListaEmpresa> listaEmpresas = new ListaObj<>(empresas.size());
         for (Empresa empresa : empresas) {
             List<ListaEndereco> listaEnderecos = new ArrayList<>();
             extrairEndereco(empresa, listaEnderecos);
@@ -43,13 +44,13 @@ public class EmpresaServices {
                     empresa.getCnpj(),
                     listaEnderecos
             );
-            listaEmpresas.add(empresaDto);
+            listaEmpresas.adiciona(empresaDto);
         }
         return listaEmpresas;
     }
 
     private static void extrairEndereco(Empresa empresa, List<ListaEndereco> listaEnderecos) {
-        for(Endereco endereco : empresa.getEnderecos()){
+        for (Endereco endereco : empresa.getEnderecos()) {
             var enderecoDto = new ListaEndereco(
                     endereco.getId(),
                     endereco.getLogradouro(),
@@ -72,7 +73,7 @@ public class EmpresaServices {
 
     public void atualizar(EmpresaCriacaoDto empresa, Integer id) {
         var empresaAtualizada = repository.findById(id);
-        if (empresaAtualizada.isPresent()){
+        if (empresaAtualizada.isPresent()) {
             empresaAtualizada.get().setRazaoSocial(empresa.razaoSocial());
             empresaAtualizada.get().setCnpj(empresa.cnpj());
             repository.save(empresaAtualizada.get());
@@ -101,4 +102,79 @@ public class EmpresaServices {
 
         return EmpresaMapper.of(empresaAutenticada, jwtToken);
     }
-}
+
+    public void gravaArquivosCsv(ListaObj<ListaEmpresa> lista) {
+        FileWriter arq = null;
+        PrintWriter saida = null;
+        boolean deuRuim = false;
+        String pastaDownloads = System.getProperty("user.home") + "/Downloads";
+        String nomeArq = pastaDownloads + "/resultado.csv";
+
+        try {
+            arq = new FileWriter(nomeArq);
+            saida = new PrintWriter(arq);
+        } catch (IOException erro) {
+            System.out.println("Erro ao abrir o arquivo");
+            System.exit(1);
+        }
+
+        try {
+            saida.println("ID;razao social;CNPJ;logradouro;numero;complemento;estado;cidade;");
+            for (int i = 0; i < lista.getNroElem(); i++) {
+                if (lista.getElemento(i).enderecos().isEmpty()) {
+                    saida.println(
+                            lista.getElemento(i).id() + ";" +
+                                    lista.getElemento(i).razaoSocial() + ";" +
+                                    lista.getElemento(i).cnpj() + ";"
+                    );
+                } else {
+                    saida.println(
+                            lista.getElemento(i).id() + ";" +
+                                    lista.getElemento(i).razaoSocial() + ";" +
+                                    lista.getElemento(i).cnpj() + ";" +
+                                    lista.getElemento(i).enderecos().get(0).logradouro() + ";" +
+                                    lista.getElemento(i).enderecos().get(0).numero() + ";" +
+                                    lista.getElemento(i).enderecos().get(0).complemento() + ";" +
+                                    lista.getElemento(i).enderecos().get(0).estado() + ";" +
+                                    lista.getElemento(i).enderecos().get(0).cidade()
+                    );
+                }
+            }
+
+        } catch (FormatterClosedException erro) {
+            System.out.println("Erro ao gravar o arquivo");
+            deuRuim = true;
+        } finally {
+            saida.close();
+            try {
+                arq.close();
+            } catch (IOException erro) {
+                System.out.println("Erro ao fechar o arquivo");
+                deuRuim = true;
+            }
+            if (deuRuim) {
+                System.exit(1);
+            }
+        }
+    }
+
+    public ListaObj<ListaEmpresa> ordenarPorRazaoSocial() {
+        ListaObj<ListaEmpresa> listaEmpresas = listarEmpresas();
+        for (int i = 0; i < listaEmpresas.getNroElem() - 1; i++) {
+            for (int j = i + 1; j < listaEmpresas.getNroElem(); j++) {
+                if (listaEmpresas.getElemento(j).razaoSocial().compareToIgnoreCase(listaEmpresas.getElemento(i).razaoSocial()) < 0) {
+                    ListaEmpresa aux = listaEmpresas.getElemento(i);
+                    listaEmpresas.setElemento(i, listaEmpresas.getElemento(j));
+                    listaEmpresas.setElemento(j, aux);
+                }
+            }
+        }
+        gravaArquivosCsv(listaEmpresas);
+        return listaEmpresas;
+    }
+
+    public Integer pesquisaBinariaRazaoSocial(String razaoSocial) {
+        ListaObj<ListaEmpresa> listaObj = ordenarPorRazaoSocial();
+        return listaObj.pesquisaBinaria(razaoSocial);
+    }
+    }
