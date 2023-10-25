@@ -105,29 +105,30 @@ public class EmpresaServices {
 
     public void gravaArquivosCsv(ListaObj<ListaEmpresa> lista) {
         FileWriter arq = null;
-        PrintWriter saida = null;
+        Formatter saida = null;
         boolean deuRuim = false;
         String pastaDownloads = System.getProperty("user.home") + "/Downloads";
         String nomeArq = pastaDownloads + "/resultado.csv";
 
         try {
             arq = new FileWriter(nomeArq);
-            saida = new PrintWriter(arq);
+            saida = new Formatter(arq);
         } catch (IOException erro) {
             System.out.println("Erro ao abrir o arquivo");
             throw new RuntimeException(erro);
         }
 
         try {
+            saida.format("id;razaoSocial;cnpj;logradouro;numero;complemento;estado;cidade\n");
             for (int i = 0; i < lista.getNroElem(); i++) {
                 if (lista.getElemento(i).enderecos().isEmpty()) {
-                    saida.println(
+                    saida.format(
                             lista.getElemento(i).id() + ";" +
                                     lista.getElemento(i).razaoSocial() + ";" +
-                                    lista.getElemento(i).cnpj() + ";"
+                                    lista.getElemento(i).cnpj() + "\n"
                     );
                 } else {
-                    saida.println(
+                    saida.format(
                             lista.getElemento(i).id() + ";" +
                                     lista.getElemento(i).razaoSocial() + ";" +
                                     lista.getElemento(i).cnpj() + ";" +
@@ -135,7 +136,7 @@ public class EmpresaServices {
                                     lista.getElemento(i).enderecos().get(0).numero() + ";" +
                                     lista.getElemento(i).enderecos().get(0).complemento() + ";" +
                                     lista.getElemento(i).enderecos().get(0).estado() + ";" +
-                                    lista.getElemento(i).enderecos().get(0).cidade()
+                                    lista.getElemento(i).enderecos().get(0).cidade() + "\n"
                     );
                 }
             }
