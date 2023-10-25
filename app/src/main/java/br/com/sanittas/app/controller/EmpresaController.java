@@ -26,7 +26,7 @@ public class EmpresaController {
 
     @Autowired
     private EmpresaServices services;
-    
+
     @PostMapping("/login")
     public ResponseEntity<EmpresaTokenDto> login(@RequestBody EmpresaLoginDto empresaLoginDto) {
         EmpresaTokenDto empresaTokenDto = services.autenticar(empresaLoginDto);

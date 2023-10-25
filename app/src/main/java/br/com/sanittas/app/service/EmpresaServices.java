@@ -115,11 +115,10 @@ public class EmpresaServices {
             saida = new PrintWriter(arq);
         } catch (IOException erro) {
             System.out.println("Erro ao abrir o arquivo");
-            System.exit(1);
+            throw new RuntimeException(erro);
         }
 
         try {
-            saida.println("ID;razao social;CNPJ;logradouro;numero;complemento;estado;cidade;");
             for (int i = 0; i < lista.getNroElem(); i++) {
                 if (lista.getElemento(i).enderecos().isEmpty()) {
                     saida.println(
@@ -151,9 +150,6 @@ public class EmpresaServices {
             } catch (IOException erro) {
                 System.out.println("Erro ao fechar o arquivo");
                 deuRuim = true;
-            }
-            if (deuRuim) {
-                System.exit(1);
             }
         }
     }
