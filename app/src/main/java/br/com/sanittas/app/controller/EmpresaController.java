@@ -48,7 +48,7 @@ public class EmpresaController {
         }
     }
 
-    @PostMapping("/")
+    @PostMapping("/cadastrar/")
     public ResponseEntity<Void> cadastrarEmpresa(@RequestBody @Valid EmpresaCriacaoDto empresa) {
         try {
             services.cadastrar(empresa);

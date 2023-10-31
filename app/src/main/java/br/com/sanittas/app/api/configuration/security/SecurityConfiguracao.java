@@ -49,7 +49,7 @@ public class SecurityConfiguracao {
             new AntPathRequestMatcher("/api/public/**"),
             new AntPathRequestMatcher("/api/public/authenticate"),
             new AntPathRequestMatcher("/empresas/login/**"),
-            new AntPathRequestMatcher("/empresas")
+            new AntPathRequestMatcher("/empresas/cadastrar/")
 
     };
 

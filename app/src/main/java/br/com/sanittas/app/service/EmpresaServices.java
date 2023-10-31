@@ -64,9 +64,15 @@ public class EmpresaServices {
     }
 
     public void cadastrar(EmpresaCriacaoDto empresa) {
+
+
         Empresa empresaNova = new Empresa();
+        String senhaCriptografada = passwordEncoder.encode(empresa.senha());
+        empresaNova.setSenha(senhaCriptografada);
         empresaNova.setRazaoSocial(empresa.razaoSocial());
         empresaNova.setCnpj(empresa.cnpj());
+        empresaNova.setEmail(empresa.email());
+
 
         repository.save(empresaNova);
     }

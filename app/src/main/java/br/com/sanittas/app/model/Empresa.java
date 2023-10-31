@@ -1,6 +1,7 @@
 package br.com.sanittas.app.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.br.CNPJ;
@@ -19,6 +20,9 @@ public class Empresa {
     private String razaoSocial;
     @CNPJ
     private String cnpj;
+
+    @Email
+    private String email;
 
     private String senha;
     @OneToMany(mappedBy = "empresa", orphanRemoval = true)
