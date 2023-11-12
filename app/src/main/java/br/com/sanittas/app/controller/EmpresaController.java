@@ -1,11 +1,13 @@
 package br.com.sanittas.app.controller;
 
 import br.com.sanittas.app.exception.ValidacaoException;
+import br.com.sanittas.app.service.EmailServices;
 import br.com.sanittas.app.service.EmpresaServices;
 import br.com.sanittas.app.service.autenticacao.dto.EmpresaLoginDto;
 import br.com.sanittas.app.service.autenticacao.dto.EmpresaTokenDto;
 import br.com.sanittas.app.service.empresa.dto.EmpresaCriacaoDto;
 import br.com.sanittas.app.service.empresa.dto.ListaEmpresa;
+import br.com.sanittas.app.service.empresa.dto.NovaSenhaDto;
 import br.com.sanittas.app.util.ListaObj;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,8 @@ public class EmpresaController {
 
     @Autowired
     private EmpresaServices services;
+    @Autowired
+    private EmailServices emailServices;
 
     @PostMapping("/login")
     public ResponseEntity<EmpresaTokenDto> login(@RequestBody EmpresaLoginDto empresaLoginDto) {
@@ -124,6 +128,52 @@ public class EmpresaController {
         } catch (Exception e) {
             log.error("Erro na pesquisa binária por razão social: {}", e.getMessage());
             return ResponseEntity.status(400).build();
+        }
+    }
+
+    @PostMapping("/esqueci-senha")
+    public ResponseEntity<?> esqueciASenha(@RequestParam String cnpj) {
+        try {
+            String token = services.generateToken(cnpj);
+            emailServices.enviarEmailComToken(cnpj, token);
+            return ResponseEntity.status(200).build();
+        } catch (Exception e) {
+            log.info(e.getLocalizedMessage());
+            return ResponseEntity.status(400).body(e.getLocalizedMessage());
+        }
+    }
+
+    /**
+     * Valida um token para redefinição de senha.
+     *
+     * @param token O token a ser validado.
+     * @return Uma ResponseEntity indicando o sucesso ou falha da operação.
+     */
+    @GetMapping("/validarToken/{token}")
+    public ResponseEntity<?> validarToken(@PathVariable String token) {
+        try {
+            services.validarToken(token);
+            return ResponseEntity.status(200).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(e.getLocalizedMessage());
+        }
+    }
+
+    /**
+     * Altera a senha de um usuário.
+     *
+     * @param novaSenhaDto O DTO contendo a nova senha e o token de validação.
+     * @return Uma ResponseEntity indicando o sucesso ou falha da operação.
+     */
+    @PutMapping("/alterar-senha")
+    public ResponseEntity<?> alterarSenha(@RequestBody @Valid NovaSenhaDto novaSenhaDto) {
+        try {
+            services.alterarSenha(novaSenhaDto);
+            return ResponseEntity.status(200).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(409).build(); // Conflito, token inválido
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(e.getLocalizedMessage());
         }
     }
 }

@@ -89,7 +89,11 @@
             <artifactId>aws-mysql-jdbc</artifactId>
             <version>1.1.9</version>
         </dependency>
-
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+			<version>3.1.2</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
