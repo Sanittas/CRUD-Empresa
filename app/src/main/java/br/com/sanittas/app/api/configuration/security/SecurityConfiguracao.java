@@ -48,21 +48,23 @@ public class SecurityConfiguracao {
             new AntPathRequestMatcher("/actuator/*"),
             new AntPathRequestMatcher("/api/public/**"),
             new AntPathRequestMatcher("/api/public/authenticate"),
-            new AntPathRequestMatcher("/empresas/login/**")
+            new AntPathRequestMatcher("/empresas/login/**"),
+            new AntPathRequestMatcher("/empresas/cadastrar/"),
 
     };
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.
-                headers()
+        http
+                .headers()
                 .frameOptions().disable()
                 .and()
                 .cors()
                 .and()
                 .csrf()
                 .disable()
-                .authorizeHttpRequests(authorize -> authorize.requestMatchers(URLS_PERMITIDAS).permitAll()
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(URLS_PERMITIDAS).permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling()
@@ -71,8 +73,7 @@ public class SecurityConfiguracao {
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        http.addFilterBefore(jwtAuthenticationFilterBean(), UsernamePasswordAuthenticationFilter.class)
-        ;
+        http.addFilterBefore(jwtAuthenticationFilterBean(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -128,5 +129,4 @@ public class SecurityConfiguracao {
 
         return origem;
     }
-
 }

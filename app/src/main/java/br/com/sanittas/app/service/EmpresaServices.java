@@ -1,6 +1,7 @@
 package br.com.sanittas.app.service;
 
 import br.com.sanittas.app.api.configuration.security.jwt.GerenciadorTokenJwt;
+import br.com.sanittas.app.exception.ValidacaoException;
 import br.com.sanittas.app.model.Empresa;
 import br.com.sanittas.app.model.Endereco;
 import br.com.sanittas.app.repository.EmpresaRepository;
@@ -9,6 +10,8 @@ import br.com.sanittas.app.service.autenticacao.dto.EmpresaTokenDto;
 import br.com.sanittas.app.service.empresa.dto.*;
 import br.com.sanittas.app.service.endereco.dto.ListaEndereco;
 import br.com.sanittas.app.util.ListaObj;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,16 +26,22 @@ import java.util.*;
 
 @Service
 public class EmpresaServices {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EmpresaServices.class);
+
     @Autowired
-    EmpresaRepository repository;
+    private EmpresaRepository repository;
+
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+
     @Autowired
     private GerenciadorTokenJwt gerenciadorTokenJwt;
+
     @Autowired
     private AuthenticationManager authenticationManager;
 
     public ListaObj<ListaEmpresa> listarEmpresas() {
+        LOGGER.info("Listando todas as empresas.");
         List<Empresa> empresas = repository.findAll();
         ListaObj<ListaEmpresa> listaEmpresas = new ListaObj<>(empresas.size());
         for (Empresa empresa : empresas) {
@@ -46,6 +55,7 @@ public class EmpresaServices {
             );
             listaEmpresas.adiciona(empresaDto);
         }
+        LOGGER.info("Empresas listadas com sucesso.");
         return listaEmpresas;
     }
 
@@ -64,27 +74,43 @@ public class EmpresaServices {
     }
 
     public void cadastrar(EmpresaCriacaoDto empresa) {
+        if (repository.existsByRazaoSocial(empresa.razaoSocial())) {
+         throw new ValidacaoException("Razão Social já cadastrada.");
+        }
+        if (repository.existsByCnpj(empresa.cnpj())) {
+            throw new ValidacaoException("CNPJ já cadastrado.");
+        }
+        LOGGER.info("Cadastrando nova empresa.");
         Empresa empresaNova = new Empresa();
         empresaNova.setRazaoSocial(empresa.razaoSocial());
         empresaNova.setCnpj(empresa.cnpj());
 
+
         repository.save(empresaNova);
+        LOGGER.info("Empresa cadastrada com sucesso.");
     }
 
     public void atualizar(EmpresaCriacaoDto empresa, Integer id) {
+        LOGGER.info("Atualizando empresa com ID: {}", id);
         var empresaAtualizada = repository.findById(id);
         if (empresaAtualizada.isPresent()) {
             empresaAtualizada.get().setRazaoSocial(empresa.razaoSocial());
             empresaAtualizada.get().setCnpj(empresa.cnpj());
             repository.save(empresaAtualizada.get());
+            LOGGER.info("Empresa atualizada com sucesso.");
+        } else {
+            LOGGER.warn("Tentativa de atualizar empresa com ID {}, mas não encontrada.", id);
         }
     }
 
     public void deletar(Integer id) {
+        LOGGER.info("Deletando empresa com ID: {}", id);
         repository.deleteById(id);
+        LOGGER.info("Empresa deletada com sucesso.");
     }
 
     public EmpresaTokenDto autenticar(EmpresaLoginDto empresaLoginDto) {
+        LOGGER.info("Autenticando empresa com CNPJ: {}", empresaLoginDto.cnpj());
         final UsernamePasswordAuthenticationToken credentials = new UsernamePasswordAuthenticationToken(
                 empresaLoginDto.cnpj(), empresaLoginDto.senha());
 
@@ -93,17 +119,20 @@ public class EmpresaServices {
         Empresa empresaAutenticada =
                 repository.findByCnpj(empresaLoginDto.cnpj())
                         .orElseThrow(
-                                () -> new ResponseStatusException(404, "cnpj não cadastrado", null)
+                                () -> new ResponseStatusException(404, "CNPJ não cadastrado", null)
                         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        final String jwtToken = gerenciadorTokenJwt.generateToken(authentication);
+        final String jwtToken = gerenciadorTokenJwt.gerarToken(authentication);
+
+        LOGGER.info("Autenticação bem-sucedida para empresa com CNPJ: {}", empresaLoginDto.cnpj());
 
         return EmpresaMapper.of(empresaAutenticada, jwtToken);
     }
 
     public void gravaArquivosCsv(ListaObj<ListaEmpresa> lista) {
+        LOGGER.info("Gravando arquivo CSV com informações das empresas.");
         FileWriter arq = null;
         PrintWriter saida = null;
         boolean deuRuim = false;
@@ -114,12 +143,12 @@ public class EmpresaServices {
             arq = new FileWriter(nomeArq);
             saida = new PrintWriter(arq);
         } catch (IOException erro) {
-            System.out.println("Erro ao abrir o arquivo");
+            LOGGER.error("Erro ao abrir o arquivo.", erro);
             System.exit(1);
         }
 
         try {
-            saida.println("ID;razao social;CNPJ;logradouro;numero;complemento;estado;cidade;");
+            saida.println("ID;Razão Social;CNPJ;Logradouro;Número;Complemento;Estado;Cidade;");
             for (int i = 0; i < lista.getNroElem(); i++) {
                 if (lista.getElemento(i).enderecos().isEmpty()) {
                     saida.println(
@@ -142,23 +171,25 @@ public class EmpresaServices {
             }
 
         } catch (FormatterClosedException erro) {
-            System.out.println("Erro ao gravar o arquivo");
+            LOGGER.error("Erro ao gravar o arquivo.", erro);
             deuRuim = true;
         } finally {
             saida.close();
             try {
                 arq.close();
             } catch (IOException erro) {
-                System.out.println("Erro ao fechar o arquivo");
+                LOGGER.error("Erro ao fechar o arquivo.", erro);
                 deuRuim = true;
             }
             if (deuRuim) {
                 System.exit(1);
             }
         }
+        LOGGER.info("Arquivo CSV gravado com sucesso.");
     }
 
     public ListaObj<ListaEmpresa> ordenarPorRazaoSocial() {
+        LOGGER.info("Ordenando empresas por Razão Social.");
         ListaObj<ListaEmpresa> listaEmpresas = listarEmpresas();
         for (int i = 0; i < listaEmpresas.getNroElem() - 1; i++) {
             for (int j = i + 1; j < listaEmpresas.getNroElem(); j++) {
@@ -170,11 +201,15 @@ public class EmpresaServices {
             }
         }
         gravaArquivosCsv(listaEmpresas);
+        LOGGER.info("Empresas ordenadas por Razão Social.");
         return listaEmpresas;
     }
 
     public Integer pesquisaBinariaRazaoSocial(String razaoSocial) {
+        LOGGER.info("Realizando pesquisa binária por Razão Social: {}", razaoSocial);
         ListaObj<ListaEmpresa> listaObj = ordenarPorRazaoSocial();
-        return listaObj.pesquisaBinaria(razaoSocial);
+        Integer resultado = listaObj.pesquisaBinaria(razaoSocial);
+        LOGGER.info("Resultado da pesquisa binária: {}", resultado);
+        return resultado;
     }
-    }
+}

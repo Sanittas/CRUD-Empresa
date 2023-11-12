@@ -18,9 +18,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Objects;
 
-
 public class AutenticacaoFilter extends OncePerRequestFilter {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(AutenticacaoFilter.class);
+
     private final AutenticacaoService autenticacaoService;
     private final GerenciadorTokenJwt jwtTokenManager;
 
@@ -29,6 +30,21 @@ public class AutenticacaoFilter extends OncePerRequestFilter {
         this.jwtTokenManager = jwtTokenManager;
     }
 
+
+    private void addUsernameInContext(HttpServletRequest request, String username, String jwtToken) {
+        UserDetails userDetails = autenticacaoService.loadUserByUsername(username);
+
+        if (jwtTokenManager.validarToken(jwtToken, userDetails)) {
+            UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new
+                    UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities());
+
+            usernamePasswordAuthenticationToken
+                    .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+            SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+        }
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -41,12 +57,10 @@ public class AutenticacaoFilter extends OncePerRequestFilter {
             jwtToken = requestTokenHeader.substring(7);
 
             try {
-                username = jwtTokenManager.getUsernameFromToken(jwtToken);
+                username = jwtTokenManager.obterNomeUsuarioDoToken(jwtToken);
             } catch (ExpiredJwtException exception) {
-
-                LOGGER.info("[FALHA AUTENTICACAO] - Token expirado, usuario: {} - {}", exception.getClaims().getSubject(), exception.getMessage());
-
-                LOGGER.trace("[FALHA AUTENTICACAO] - %s", exception);
+                LOGGER.info("[FALHA AUTENTICACAO] - Token expirado, usuário: {} - {}", exception.getClaims().getSubject(), exception.getMessage());
+                LOGGER.trace("[FALHA AUTENTICACAO] - {}", exception);
 
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             }
@@ -55,23 +69,7 @@ public class AutenticacaoFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             addUsernameInContext(request, username, jwtToken);
         }
+
         filterChain.doFilter(request, response);
-    }
-
-    private void addUsernameInContext(HttpServletRequest request, String username, String jwtToken) {
-
-        UserDetails userDetails = autenticacaoService.loadUserByUsername(username);
-
-        if (jwtTokenManager.validateToken(jwtToken, userDetails)) {
-
-            UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new
-                    UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities());
-
-            usernamePasswordAuthenticationToken
-                    .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-            SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-        }
     }
 }

@@ -3,6 +3,8 @@ package br.com.sanittas.app.api.configuration.security.jwt;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -16,54 +18,86 @@ import java.util.stream.Collectors;
 
 public class GerenciadorTokenJwt {
 
+    private static final Logger logger = LoggerFactory.getLogger(GerenciadorTokenJwt.class);
+
     @Value("${jwt.secret}")
-    private String secret;
+    private String segredo;
 
     @Value("${jwt.validity}")
-    private long jwtTokenValidity;
+    private long duracaoTokenJwt;
 
-    public String getUsernameFromToken(String token) {
-        return getClaimForToken(token, Claims::getSubject);
+    public String obterNomeUsuarioDoToken(String token) {
+        return obterReivindicacaoDoToken(token, Claims::getSubject);
     }
 
-    public Date getExpirationDateFromToken(String token) {
-        return getClaimForToken(token, Claims::getExpiration);
+    public Date obterDataExpiracaoDoToken(String token) {
+        return obterReivindicacaoDoToken(token, Claims::getExpiration);
     }
 
-    public String generateToken(final Authentication authentication) {
-        final String authorities = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
+    public String gerarToken(final Authentication autenticacao) {
+        try {
+            final String autoridades = autenticacao.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.joining(","));
 
-        return Jwts.builder().setSubject(authentication.getName())
-                .signWith(parseSecret()).setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtTokenValidity * 1_000)).compact();
+            return Jwts.builder().setSubject(autenticacao.getName())
+                    .signWith(gerarChaveSecreta()).setIssuedAt(new Date(System.currentTimeMillis()))
+                    .setExpiration(new Date(System.currentTimeMillis() + duracaoTokenJwt * 1_000)).compact();
+        } catch (Exception e) {
+            logger.error("Erro ao gerar o token: {}", e.getMessage(), e);
+            throw new RuntimeException("Erro ao gerar o token", e);
+        }
     }
 
-    public <T> T getClaimForToken(String token, Function<Claims, T> claimsResolver) {
-        Claims claims = getAllClaimsForToken(token);
-        return claimsResolver.apply(claims);
+    public <T> T obterReivindicacaoDoToken(String token, Function<Claims, T> resolvedorReivindicacao) {
+        try {
+            Claims reivindicacoes = obterTodasReivindicacoesDoToken(token);
+            return resolvedorReivindicacao.apply(reivindicacoes);
+        } catch (Exception e) {
+            logger.error("Erro ao obter reivindicações do token: {}", e.getMessage(), e);
+            throw new RuntimeException("Erro ao obter reivindicações do token", e);
+        }
     }
 
-    public boolean validateToken(String token, UserDetails userDetails) {
-        String username = getUsernameFromToken(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    public boolean validarToken(String token, UserDetails userDetails) {
+        try {
+            String nomeUsuario = obterNomeUsuarioDoToken(token);
+            return (nomeUsuario.equals(userDetails.getUsername()) && !tokenExpirado(token));
+        } catch (Exception e) {
+            logger.error("Erro ao validar o token: {}", e.getMessage(), e);
+            throw new RuntimeException("Erro ao validar o token", e);
+        }
     }
 
-    public boolean isTokenExpired(String token) {
-        Date expiration = getExpirationDateFromToken(token);
-        return expiration.before(new Date(System.currentTimeMillis()));
+    public boolean tokenExpirado(String token) {
+        try {
+            Date expiracao = obterDataExpiracaoDoToken(token);
+            return expiracao.before(new Date(System.currentTimeMillis()));
+        } catch (Exception e) {
+            logger.error("Erro ao verificar a expiração do token: {}", e.getMessage(), e);
+            throw new RuntimeException("Erro ao verificar a expiração do token", e);
+        }
     }
 
-    private Claims getAllClaimsForToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(parseSecret())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+    private Claims obterTodasReivindicacoesDoToken(String token) {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(gerarChaveSecreta())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (Exception e) {
+            logger.error("Erro ao analisar as reivindicações do token: {}", e.getMessage(), e);
+            throw new RuntimeException("Erro ao analisar as reivindicações do token", e);
+        }
     }
 
-    private SecretKey parseSecret() {
-        return Keys.hmacShaKeyFor(this.secret.getBytes(StandardCharsets.UTF_8));
+    private SecretKey gerarChaveSecreta() {
+        try {
+            return Keys.hmacShaKeyFor(this.segredo.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            logger.error("Erro ao gerar a chave secreta: {}", e.getMessage(), e);
+            throw new RuntimeException("Erro ao gerar a chave secreta", e);
+        }
     }
 }

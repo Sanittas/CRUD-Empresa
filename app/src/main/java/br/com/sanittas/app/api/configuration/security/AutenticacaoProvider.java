@@ -11,7 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.logging.Logger;
 
-
 public class AutenticacaoProvider implements AuthenticationProvider {
 
     private static final Logger LOGGER = Logger.getLogger(AutenticacaoProvider.class.getName());
@@ -34,7 +33,8 @@ public class AutenticacaoProvider implements AuthenticationProvider {
         if (userDetails != null && this.passwordEncoder.matches(password, userDetails.getPassword())) {
             return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         } else {
-            throw new BadCredentialsException("cnpj ou senha inválidos");
+            LOGGER.warning("Credenciais inválidas para a empresa: " + username);
+            throw new BadCredentialsException("CNPJ ou senha inválidos");
         }
     }
 
