@@ -13,6 +13,7 @@ public class Endereco {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne
+    @JoinColumn(name = "fk_empresa")
     private Empresa empresa;
     @NotBlank
     private String logradouro;

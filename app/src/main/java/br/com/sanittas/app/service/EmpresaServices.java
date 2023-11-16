@@ -91,6 +91,7 @@ public class EmpresaServices {
         Empresa empresaNova = new Empresa();
         empresaNova.setRazaoSocial(empresa.razaoSocial());
         empresaNova.setCnpj(empresa.cnpj());
+        empresaNova.setSenha(passwordEncoder.encode(empresa.senha()));
 
 
         repository.save(empresaNova);
@@ -103,6 +104,7 @@ public class EmpresaServices {
         if (empresaAtualizada.isPresent()) {
             empresaAtualizada.get().setRazaoSocial(empresa.razaoSocial());
             empresaAtualizada.get().setCnpj(empresa.cnpj());
+            empresaAtualizada.get().setSenha(passwordEncoder.encode(empresa.senha()));
             repository.save(empresaAtualizada.get());
             LOGGER.info("Empresa atualizada com sucesso.");
         } else {
