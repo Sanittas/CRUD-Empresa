@@ -23,6 +23,7 @@ public class EmpresaMapper {
         empresaTokenDto.setCnpj(empresa.getCnpj());
         empresaTokenDto.setToken(token);
 
+
         return empresaTokenDto;
     }
 }

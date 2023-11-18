@@ -42,6 +42,7 @@ public class EmpresaServices {
                     empresa.getId(),
                     empresa.getRazaoSocial(),
                     empresa.getCnpj(),
+                    empresa.getEmail(),
                     listaEnderecos
             );
             listaEmpresas.adiciona(empresaDto);
@@ -199,5 +200,21 @@ public class EmpresaServices {
     public Integer pesquisaBinariaRazaoSocial(String razaoSocial) {
         ListaObj<ListaEmpresa> listaObj = ordenarPorRazaoSocial();
         return listaObj.pesquisaBinaria(razaoSocial);
+    }
+
+    public ListaEmpresa buscarEmpresaPorId(Integer id) {
+        Optional<Empresa> empresa = repository.findById(id);
+        if (empresa.isPresent()) {
+            List<ListaEndereco> listaEnderecos = new ArrayList<>();
+            extrairEndereco(empresa.get(), listaEnderecos);
+            return new ListaEmpresa(
+                    empresa.get().getId(),
+                    empresa.get().getRazaoSocial(),
+                    empresa.get().getCnpj(),
+                    empresa.get().getEmail(),
+                    listaEnderecos
+            );
+        }
+        return null;
     }
 }

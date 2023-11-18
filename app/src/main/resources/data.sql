@@ -1,1 +1,1 @@
-INSERT INTO empresa(razao_social,cnpj,senha) VALUES ('razaoSocial_7ca505190d4f','60.701.190/0001-04','$2a$10$0ohoKBqzOD68He2GOZ5z3.pBcAtzYhfVGAV2TNztHkn6HFdlHLLDi');
+INSERT INTO empresa(razao_social,email,cnpj,senha) VALUES ('paulo','paulo@gmail.com','60701190000104','$2a$10$vtvgl8ujHK/8PeXmRvv3POtH8iTxgXZBfW2oCBge1qnh7fL.POzfC');

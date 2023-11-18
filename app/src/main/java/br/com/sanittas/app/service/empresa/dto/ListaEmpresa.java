@@ -8,6 +8,7 @@ public record ListaEmpresa(
         Integer id,
         String razaoSocial,
         String cnpj,
+        String email,
         List<ListaEndereco> enderecos
 ) {
 }

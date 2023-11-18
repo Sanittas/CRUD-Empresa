@@ -70,6 +70,18 @@ public class EmpresaController {
         }
     }
 
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ListaEmpresa> buscarEmpresa(@PathVariable Integer id) {
+        try {
+            ListaEmpresa response = services.buscarEmpresaPorId(id);
+            return ResponseEntity.status(200).body(response);
+        } catch (Exception e) {
+            System.out.println(e.getLocalizedMessage());
+            return ResponseEntity.status(400).build();
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarEmpresa(@PathVariable Integer id) {
         try {
